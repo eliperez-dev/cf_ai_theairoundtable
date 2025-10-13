@@ -1,6 +1,3 @@
 name = "aipodcast-worker"
 main = "src/index.ts"
 compatibility_date = "2025-10-13"
-
-[wasm_modules]
-AUDIO_COMBINER_WASM = "pkg/audio_combiner_bg.wasm"

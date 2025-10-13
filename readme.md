@@ -1,72 +1,180 @@
 # The AI Roundtable Agent
 
-An advanced, AI-powered application that transforms any source text into a conversational podcast. This project was built entirely on the Cloudflare developer platform for the 2025 Software Engineering Internship application.
+An AI-powered application that transforms any topic into a conversational podcast. This project is being built entirely on the Cloudflare developer platform for the 2025 Software Engineering Internship application.
 
-**Core Technologies:** `Cloudflare Workers` `Workers AI` `Rust / WASM` `Cloudflare R2` `Cloudflare Workflows`
+**Core Technologies:** `Cloudflare Workers` `Workers AI` `TypeScript` `Cloudflare Pages (planned)`
 
 ---
 
 ## Vision & Summary
 
-The **AI Roundtable Agent** is a content-generation engine that acts as an instant podcast production team. The agent takes any piece of source text—such as an article, a report, or a memo—and produces a fully-produced, conversational audio file.
+The **AI Roundtable Agent** is a content-generation engine that acts as an instant podcast production team. The agent takes any topic or source text—such as an article, a report, or a memo—and produces a conversational audio file featuring two distinct AI hosts.
 
-Instead of simply reading the text aloud, the agent first comprehends the source material to extract its key themes and arguments. It then generates a **completely original and new script** depicting a natural, back-and-forth dialogue between distinct AI hosts. These hosts discuss and debate the ideas from the source text, creating an engaging and insightful conversation.
+Instead of simply reading the text aloud, the agent generates a **completely original script** depicting a natural, back-and-forth dialogue between distinct AI hosts (Alex and Jamie). These hosts discuss and debate the ideas from the source material, creating an engaging and insightful conversation.
 
-This final audio is complete with two different host voices and intro/outro music, demonstrating an end-to-end, serverless pipeline for creative AI work.
+This project demonstrates serverless AI orchestration, combining large language models with text-to-speech synthesis on Cloudflare's edge network.
 
-## Key Features
+## Current Features (Implemented)
 
-* **AI-Powered Conversational Scriptwriting:** The agent deeply analyzes source text and writes a brand new, two-host dialogue about its core concepts.
-* **Dual-Host Audio Generation:** Utilizes two distinct Text-to-Speech voices from Workers AI to produce a dynamic, conversational podcast.
-* **High-Performance Audio Assembly:** Employs a custom **Rust/WASM** module for the efficient, serverless concatenation of audio files on the Cloudflare network.
-* **End-to-End Serverless:** The entire application, from the user interface to the complex AI pipeline, is built and deployed on Cloudflare.
+* **AI-Powered Conversational Scriptwriting:** Uses Workers AI (GPT-based LLM) to generate a two-host dialogue script with distinct personalities
+* **Dual-Host Audio Generation:** Utilizes two distinct Text-to-Speech voices from Workers AI (Deepgram Aura-1) to produce a dynamic conversation
+  - Alex: Knowledgeable and calm presenter (Arcas voice)
+  - Jamie: Inquisitive and upbeat co-host (Luna voice)
+* **Sequential Audio Assembly:** Combines multiple TTS audio streams into a single continuous podcast file
+* **Serverless Execution:** Runs entirely on Cloudflare Workers with no external dependencies
 
 ---
 ## Technical Architecture & Data Pipeline
 
-The entire process is orchestrated by a serverless workflow that manages a sophisticated chain of AI reasoning and multimedia processing.
+### Current Implementation
 
 ```mermaid
 graph TD
-    A[User Submits Source Text via Pages] --> B{Cloudflare Worker Triggered};
-    B --> C[Step 1: AI Comprehension & Analysis of Text];
-    C --> D[Step 2: AI Generates 2-Host Conversational Script];
-    D --> E[Step 3: Parse Script & Dispatch Audio Tasks];
-
-    subgraph "Parallel Voice Generation"
-        E --> H1[Host 1 Segments → TTS Voice A];
-        E --> H2[Host 2 Segments → TTS Voice B];
-        F[Fetch Intro/Outro Music from R2];
-    end
-
-    H1 -- Audio Snippets --> G;
-    H2 -- Audio Snippets --> G;
-    F -- Music Files --> G[Step 4: Audio Assembly via Rust/WASM Module];
-
-    G --> H[Step 5: Store Final Podcast MP3 in R2];
-    H --> I[Return Public URL];
+    A[HTTP Request to Worker] --> B[Step 1: AI Script Generation];
+    B --> C[Step 2: Parse Script into Lines];
+    C --> D[Step 3: Sequential TTS Generation];
+    
+    D --> E1[Alex's Line → TTS Arcas Voice];
+    E1 --> E2[Jamie's Line → TTS Luna Voice];
+    E2 --> E3[Continue for all lines...];
+    
+    E3 --> F[Step 4: Combine Audio Streams];
+    F --> G[Return Combined Audio Response];
 ```
 
-### Pipeline Steps Explained:
+### Current Pipeline Steps:
 
-1.  **User Input:** The process is initiated when a user submits their source text through a minimalist frontend hosted on **Cloudflare Pages**.
+1.  **Worker Invocation:** The Cloudflare Worker receives an HTTP request (currently hardcoded topic: "Cloudflare as a company")
 
-2.  **AI Script Generation:** This is the creative core of the agent. The **Cloudflare Worker** first sends the source text to a **Workers AI** LLM for comprehension and analysis. Then, using that analysis for context, it prompts the LLM a second time with a sophisticated request to write a completely new, conversational script between two distinct AI host personas.
+2.  **AI Script Generation:** The Worker sends a prompt to **Workers AI** (`@cf/openai/gpt-oss-120b`) to generate a conversational script between two hosts (Alex and Jamie). The prompt specifies personality traits, format requirements, and ensures proper opening/closing segments.
 
-3.  **Parallel Voice Generation:** The Worker parses the AI-generated script. To maximize efficiency, all dialogue segments are dispatched in parallel to the **Workers AI** Text-to-Speech (TTS) model. `Host 1`'s lines are assigned one voice, and `Host 2`'s lines are assigned another. Concurrently, the intro and outro music files are fetched from **R2**.
+3.  **Script Parsing:** The generated script is parsed line-by-line, extracting dialogue for each host based on `[Alex]:` and `[Jamie]:` markers.
 
-4.  **Audio Assembly:** This critical step is handled by a custom, high-performance **Rust/WASM** module running inside the Worker. This module receives all the generated audio snippets and music files and stitches them together in the correct sequence into a single, cohesive audio file. Using Rust/WASM allows for fast, reliable processing of audio data directly on the edge.
+4.  **Sequential TTS Generation:** For each line, the Worker calls **Workers AI** TTS (`@cf/deepgram/aura-1`) with the appropriate voice:
+   - Alex's lines use the "arcas" voice
+   - Jamie's lines use the "luna" voice
 
-5.  **Final Output:** The completed MP3 file is uploaded to an **R2** bucket. A public URL to this file is returned to the user, allowing them to listen to or download their podcast.
+5.  **Audio Stream Combination:** All generated audio streams are sequentially combined using a custom JavaScript function that reads each stream and enqueues chunks into a final output stream.
+
+6.  **Response:** The combined audio stream is returned directly as the HTTP response.
 
 ---
 ## Technology Stack
 
+### Currently Implemented
 * **Compute:** Cloudflare Workers
-* **AI:** Cloudflare Workers AI (LLM for reasoning, TTS for audio)
-* **Storage:** Cloudflare R2 (for audio assets and final output)
-* **Orchestration:** Cloudflare Workflows
-* **Frontend:** Cloudflare Pages
+* **AI Models:** 
+  - Cloudflare Workers AI - `@cf/openai/gpt-oss-120b` (script generation)
+  - Cloudflare Workers AI - `@cf/deepgram/aura-1` (text-to-speech)
 * **Backend Language:** TypeScript
-* **Audio Module:** Rust compiled to WebAssembly (WASM)
-* **Tooling:** Wrangler CLI
+* **Tooling:** Wrangler CLI, Vitest (testing)
+
+### Planned Enhancements
+* **Frontend:** Cloudflare Pages with text input form
+* **Storage:** Cloudflare R2 (for storing generated podcasts and audio assets)
+* **Orchestration:** Cloudflare Workflows for complex pipeline management
+* **Features:** Intro/outro music, parallel TTS generation, custom topics via UI, podcast history
+
+---
+
+## Roadmap & Next Steps
+
+### Phase 1: Core Functionality ✅ (Current)
+- [x] AI script generation with dual-host personalities
+- [x] Text-to-speech synthesis with distinct voices
+- [x] Basic audio stream concatenation
+- [x] Serverless deployment on Cloudflare Workers
+
+### Phase 2: User Interface (Next Priority) 🎯
+- [ ] Build Cloudflare Pages frontend with clean, modern design
+- [ ] Text input form for custom topics/source text
+- [ ] Real-time generation status updates
+- [ ] Audio player with playback controls
+- [ ] Download button for generated podcasts
+- [ ] Display generated script alongside audio
+
+### Phase 3: Storage & Persistence
+- [ ] Integrate Cloudflare R2 for podcast storage
+- [ ] Generate unique URLs for each podcast
+- [ ] Store podcasts with metadata (topic, date, duration)
+- [ ] Implement podcast history/library view
+- [ ] Add sharing capabilities (copy link, social media)
+
+### Phase 4: Production Features & Polish
+- [ ] Add intro/outro music from R2 storage
+- [ ] Implement parallel TTS generation for faster processing
+- [ ] Cloudflare Workflows for complex orchestration
+- [ ] Caching layer for frequently requested topics
+- [ ] Rate limiting and usage analytics
+- [ ] Support for longer source texts (chunking)
+- [ ] Multiple podcast length options (short/medium/long)
+- [ ] Error handling and user feedback
+- [ ] Loading states and progress indicators
+
+---
+
+## Development
+
+### Prerequisites
+- Node.js (v18+)
+- Wrangler CLI
+- Cloudflare account with Workers AI enabled
+
+### Local Development
+```bash
+cd aipodcast-worker
+npm install
+npm run dev
+```
+
+### Deployment
+```bash
+npm run deploy
+```
+
+### Testing
+```bash
+npm test
+```
+
+---
+
+## Project Structure
+```
+cf_ai_aipodcast/
+├── aipodcast-worker/          # Cloudflare Worker application
+│   ├── src/
+│   │   └── index.ts           # Main worker logic
+│   ├── test/                  # Test files
+│   ├── wrangler.toml          # Worker configuration
+│   └── package.json
+├── pages/                     # Cloudflare Pages frontend (planned)
+│   └── index.html             # User interface
+├── README.md
+├── TODO                       # Development checklist
+└── prompts.md                 # AI prompt engineering notes
+```
+
+---
+
+## Current Limitations & Known Issues
+
+- **Hardcoded Topic:** Currently generates podcasts only about "Cloudflare as a company"
+- **No Persistence:** Generated audio is returned directly without storage
+- **Sequential Processing:** TTS generation happens one line at a time (slower)
+- **No UI:** Must interact directly with Worker endpoint
+- **Fixed Length:** Generates exactly 12 lines per host (24 total)
+
+These limitations will be addressed in upcoming phases!
+
+---
+
+## Contributing
+
+This project is part of a Cloudflare internship application. Feedback and suggestions are welcome!
+
+---
+
+## License
+
+This project is for educational and demonstration purposes.

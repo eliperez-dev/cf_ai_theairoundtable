@@ -7,3 +7,5 @@
 > Can you see why somtimes (not always) the audio returned only contains the first line of the podcast by alex? im thinking the prompt might need to be engineered better. look in index.ts
 
 > Refactor the initial ai prompt creator to use gpt-oss-120b
+
+> Change the readme to more accuratly reflect the current state of the project, as well as future steps (building text input with cloudlfare pages, r2 storage etc)
