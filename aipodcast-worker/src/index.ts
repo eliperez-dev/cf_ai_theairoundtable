@@ -58,44 +58,78 @@ export default {
         }
 
         try {
+            const url = new URL(request.url);
+            
             // Get topic from request
             let topic = "Cloudflare as a company"; // Default topic
+            let returnTranscript = url.searchParams.get('transcript') === 'true';
+            let providedScript: string | undefined;
             
             if (request.method === 'POST') {
-                const body = await request.json() as { topic?: string };
+                const body = await request.json() as { topic?: string; transcript?: boolean; script?: string };
                 if (body.topic && body.topic.trim()) {
                     topic = body.topic.trim();
+                }
+                if (body.transcript !== undefined) {
+                    returnTranscript = body.transcript;
+                }
+                if (body.script) {
+                    providedScript = body.script;
                 }
             }
 
             console.log(`Generating podcast for topic: ${topic}`);
 
-            // Generate script using AI
-            const response = await env.AI.run(
+            let lines: string[];
+
+            // If a script is provided, use it directly instead of generating a new one
+            if (providedScript) {
+                console.log("Using provided script");
+                lines = providedScript.split("\n");
+                lines = lines.filter(line => {
+                    const trimmed = line.trim();
+                    return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
+                });
+            } else {
+                // Generate script using AI
+                const response = await env.AI.run(
+                    // @ts-ignore
+                    "@cf/openai/gpt-oss-120b",
+                    {
+                        input: getPrompt(topic, 12),
+                    }
+                );
+
                 // @ts-ignore
-                "@cf/openai/gpt-oss-120b",
-                {
-                    input: getPrompt(topic, 12),
-                }
-            );
+                console.log("Received response from AI");
 
-            // @ts-ignore
-            console.log("Received response from AI");
+                console.log("\n\n---------------\n")
+                
+                // @ts-ignore
+                let responseText = response.output[1].content[0].text; 
 
-            console.log("\n\n---------------\n")
-            
-            // @ts-ignore
-            let responseText = response.output[1].content[0].text; 
-
-            // @ts-ignore
-            let lines: string[] = responseText.split("\n");
-            
-            lines = lines.filter(line => {
-                const trimmed = line.trim();
-                return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
-            });
+                // @ts-ignore
+                lines = responseText.split("\n");
+                
+                lines = lines.filter(line => {
+                    const trimmed = line.trim();
+                    return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
+                });
+            }
             
             console.log(`Parsed ${lines.length} lines from script`);
+            
+            // If transcript is requested, return it as JSON
+            if (returnTranscript) {
+                return new Response(JSON.stringify({ 
+                    transcript: lines.join('\n')
+                }), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                    }
+                });
+            }
             
             let podcastSegmentsInOrder: ReadableStream<any>[] = [];
 

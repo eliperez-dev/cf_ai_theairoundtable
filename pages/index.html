@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The AI Roundtable Agent</title>
+    <title>Roundtable Podcast Generator</title>
     <style>
         * {
             margin: 0;
@@ -12,122 +12,236 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .main-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            align-items: start;
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
             width: 100%;
-            padding: 40px;
+            padding: 48px;
+        }
+
+        .sidebar {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 24px;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.025em;
+        }
+
+        .transcript {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .transcript-line {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .speaker {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #7da3cc;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .speaker.alex {
+            color: #7da3cc;
+        }
+
+        .speaker.jamie {
+            color: #cc9d7d;
+        }
+
+        .dialogue {
+            color: #d0d0d0;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .transcript-empty {
+            color: #606060;
+            font-size: 0.9375rem;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            margin-bottom: 40px;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 1.875rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
         }
 
         .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
+            color: #a0a0a0;
+            font-size: 1rem;
+            font-weight: 400;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-weight: 600;
+            margin-bottom: 10px;
+            color: #d0d0d0;
+            font-weight: 500;
+            font-size: 0.9375rem;
         }
 
-        input[type="text"],
         textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
+            padding: 14px 16px;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
             border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            font-size: 15px;
+            color: #e0e0e0;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            min-height: 140px;
+            resize: vertical;
+            line-height: 1.5;
         }
 
-        input[type="text"]:focus,
+        textarea::placeholder {
+            color: #606060;
+        }
+
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #404040;
+            background: #141414;
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            font-family: inherit;
+        .example-topics {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-topics span {
+            display: inline-block;
+            background: #252525;
+            color: #b0b0b0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .example-topics span:hover {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border-color: #3a3a3a;
         }
 
         button {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            padding: 14px 24px;
+            background: #ffffff;
+            color: #0f0f0f;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s ease;
+            letter-spacing: -0.01em;
         }
 
         button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            background: #f0f0f0;
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         button:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
         }
 
         .status {
-            margin-top: 20px;
-            padding: 15px;
+            margin-top: 24px;
+            padding: 14px 16px;
             border-radius: 8px;
             display: none;
+            font-size: 0.9375rem;
+            line-height: 1.5;
         }
 
         .status.loading {
-            display: block;
-            background: #e3f2fd;
-            color: #1976d2;
-            border-left: 4px solid #1976d2;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1a2332;
+            color: #7da3cc;
+            border: 1px solid #2a3a4a;
         }
 
         .status.error {
             display: block;
-            background: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #c62828;
+            background: #2a1a1a;
+            color: #e89090;
+            border: 1px solid #3a2525;
         }
 
         .status.success {
             display: block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #2e7d32;
+            background: #1a2a1f;
+            color: #90d0a0;
+            border: 1px solid #253a2a;
         }
 
         .audio-player {
-            margin-top: 20px;
+            margin-top: 32px;
+            padding: 24px;
+            background: #141414;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
             display: none;
         }
 
@@ -135,97 +249,151 @@
             display: block;
         }
 
-        audio {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .download-btn {
-            margin-top: 10px;
-            background: #4caf50;
-            padding: 10px 20px;
-            width: auto;
-            display: inline-block;
-            text-decoration: none;
-            color: white;
-            border-radius: 8px;
+        .audio-player h3 {
+            color: #ffffff;
+            margin-bottom: 16px;
+            font-size: 1.125rem;
             font-weight: 600;
         }
 
+        audio {
+            width: 100%;
+            margin-bottom: 16px;
+            border-radius: 8px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #252525;
+            color: #e0e0e0;
+            padding: 10px 18px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            border: 1px solid #2a2a2a;
+        }
+
         .download-btn:hover {
-            background: #45a049;
+            background: #2a2a2a;
+            border-color: #3a3a3a;
         }
 
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(125, 163, 204, 0.3);
             border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            border-top-color: #7da3cc;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        .example-topics {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
+        /* Custom scrollbar for sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .example-topics span {
-            display: inline-block;
-            background: #f0f0f0;
-            padding: 4px 10px;
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
             border-radius: 4px;
-            margin: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
         }
 
-        .example-topics span:hover {
-            background: #e0e0e0;
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a;
+        }
+
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+                max-height: 600px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 32px 24px;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.9375rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>The AI Roundtable</h1>
-        <p class="subtitle">Transform any topic into a conversational podcast</p>
-
-        <form id="podcastForm">
-            <div class="input-group">
-                <label for="topic">What should Alex and Jamie discuss?</label>
-                <textarea 
-                    id="topic" 
-                    name="topic" 
-                    placeholder="Enter a topic or paste some text... (e.g., 'The future of artificial intelligence' or 'How photosynthesis works')"
-                    required
-                ></textarea>
-                <div class="example-topics">
-                    Try: 
-                    <span onclick="setTopic('The history of the internet')">The history of the internet</span>
-                    <span onclick="setTopic('How black holes work')">How black holes work</span>
-                    <span onclick="setTopic('The benefits of meditation')">The benefits of meditation</span>
-                </div>
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>The AI Roundtable</h1>
+                <p class="subtitle">Generate conversational podcasts on any topic. </p>
             </div>
 
-            <button type="submit" id="generateBtn">
-                Generate Podcast
-            </button>
-        </form>
+            <form id="podcastForm">
+                <div class="input-group">
+                    <label for="topic">Topic for Alex and Jamie to discuss: </label>
+                    <textarea 
+                        id="topic" 
+                        name="topic" 
+                        placeholder="Enter any topic you'd like to explore..."
+                        required
+                    ></textarea>
+                    <div class="example-topics">
+                        <span onclick="setTopic('The history of the internet')">History of the internet</span>
+                        <span onclick="setTopic('How black holes work')">Black holes</span>
+                        <span onclick="setTopic('The benefits of meditation')">Meditation benefits</span>
+                    </div>
+                </div>
 
-        <div id="status" class="status"></div>
+                <button type="submit" id="generateBtn">
+                    Create Podcast
+                </button>
+            </form>
 
-        <div id="audioPlayer" class="audio-player">
-            <h3>Your Podcast is Ready! 🎉</h3>
-            <audio id="audio" controls></audio>
-            <a id="downloadBtn" class="download-btn" download="podcast.mp3">
-                📥 Download Podcast
-            </a>
+            <div id="status" class="status"></div>
+
+            <div id="audioPlayer" class="audio-player">
+                <h3>Ready to listen</h3>
+                <audio id="audio" controls></audio>
+                <a id="downloadBtn" class="download-btn" download="podcast.mp3">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 11L4 7H6.5V2H9.5V7H12L8 11Z" fill="currentColor"/>
+                        <path d="M2 13H14V14H2V13Z" fill="currentColor"/>
+                    </svg>
+                    Download
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar" id="transcriptSidebar">
+            <h2>Transcript</h2>
+            <div id="transcriptContent" class="transcript">
+                <div class="transcript-empty">Generate a podcast to see the transcript here</div>
+            </div>
         </div>
     </div>
 
@@ -237,6 +405,8 @@
         const audioPlayer = document.getElementById('audioPlayer');
         const audioElement = document.getElementById('audio');
         const downloadBtn = document.getElementById('downloadBtn');
+        const transcriptSidebar = document.getElementById('transcriptSidebar');
+        const transcriptContent = document.getElementById('transcriptContent');
 
         // Configure your worker URL here
         const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
@@ -254,6 +424,45 @@
             statusDiv.className = 'status';
         }
 
+        function parseTranscript(scriptText) {
+            // Parse the script format: [Alex]:text\n[Jamie]:text
+            const lines = scriptText.split('\n').filter(line => line.trim());
+            const transcript = [];
+            
+            for (const line of lines) {
+                const match = line.match(/\[(Alex|Jamie)\]:(.*)/);
+                if (match) {
+                    transcript.push({
+                        speaker: match[1],
+                        text: match[2].trim()
+                    });
+                }
+            }
+            
+            return transcript;
+        }
+
+        function displayTranscript(transcript) {
+            transcriptContent.innerHTML = '';
+            
+            transcript.forEach(line => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'transcript-line';
+                
+                const speakerDiv = document.createElement('div');
+                speakerDiv.className = `speaker ${line.speaker.toLowerCase()}`;
+                speakerDiv.textContent = line.speaker;
+                
+                const dialogueDiv = document.createElement('div');
+                dialogueDiv.className = 'dialogue';
+                dialogueDiv.textContent = line.text;
+                
+                lineDiv.appendChild(speakerDiv);
+                lineDiv.appendChild(dialogueDiv);
+                transcriptContent.appendChild(lineDiv);
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -263,29 +472,50 @@
                 return;
             }
 
-            // Hide previous audio player
+            // Hide previous audio player and reset transcript
             audioPlayer.classList.remove('show');
+            transcriptContent.innerHTML = '<div class="transcript-empty">Generating transcript...</div>';
             
             // Show loading state
             generateBtn.disabled = true;
-            generateBtn.innerHTML = '<span class="spinner"></span> Generating your podcast...';
-            showStatus('Alex and Jamie are discussing the topic ... this may take 30-60 seconds.', 'loading');
+            generateBtn.innerHTML = '<span class="spinner"></span> Creating podcast...';
+            showStatus('Generating conversation... this typically takes 30-60 seconds', 'loading');
 
             try {
-                const response = await fetch(WORKER_URL, {
+                // First, fetch the transcript
+                showStatus('Generating script...', 'loading');
+                const transcriptResponse = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ topic })
+                    body: JSON.stringify({ topic, transcript: true })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
+                if (!transcriptResponse.ok) {
+                    throw new Error(`Server error: ${transcriptResponse.status}`);
+                }
+
+                const transcriptData = await transcriptResponse.json();
+                const transcript = parseTranscript(transcriptData.transcript);
+                displayTranscript(transcript);
+
+                // Then, fetch the audio using the same script
+                showStatus('Generating audio... this may take 30-60 seconds', 'loading');
+                const audioResponse = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic, script: transcriptData.transcript })
+                });
+
+                if (!audioResponse.ok) {
+                    throw new Error(`Server error: ${audioResponse.status}`);
                 }
 
                 // Get the audio blob
-                const audioBlob = await response.blob();
+                const audioBlob = await audioResponse.blob();
                 
                 // Create a URL for the audio blob
                 const audioUrl = URL.createObjectURL(audioBlob);
@@ -296,16 +526,16 @@
                 downloadBtn.download = `podcast-${Date.now()}.mp3`;
                 
                 // Show success
-                showStatus('✅ Podcast generated successfully!', 'success');
+                showStatus('Podcast created successfully', 'success');
                 audioPlayer.classList.add('show');
                 
             } catch (error) {
                 console.error('Error:', error);
-                showStatus(`❌ Error: ${error.message}. Make sure your worker is running!`, 'error');
+                showStatus(`Error: ${error.message}. Please check your connection and try again.`, 'error');
             } finally {
                 // Reset button
                 generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Podcast';
+                generateBtn.textContent = 'Create Podcast';
             }
         });
 
