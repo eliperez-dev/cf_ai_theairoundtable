@@ -12,53 +12,58 @@ export interface Env {
   AI: Ai;
 }
 
+function getPrompt(topic: string, linesPerHost: number): string {
+ return `
+    Generate a simple podcast script with 2 hosts:
+    - Alex (knowledgeable and calm, presenting the topic)
+    - Jamie (inquisitive, upbeat, intrigued, also knowledgeable of the topic, adding value to the discussion, )
+
+    Topic: "${topic}"
+
+    REQUIREMENTS:
+    1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2}} lines total)
+    2. Start with Alex introducing the topic
+    3. Hosts can ask questions, but REPLACE ALL QUESTION MARKS WITH PERIODS
+    4. Alex's first line MUST include:
+        - A greeting
+        - Introduction of both hosts by name
+        - Introduction to "The Breakdown AI Podcast"
+        - A short summary of the topic before diving into the subject
+        - Alex's initial line must be at least 5 sentences long
+    5. Jamie's and Alex's final line MUST close out the podcast with a closing statement that includes their names and thanks the listener
+    6. Alternate between Alex and Jamie (bouncing back and forth)
+
+    FORMAT:
+    - A line is simply what the speaker says during their turn. It can be arbitruarily long or short, but the turns should flow naturally like in real conversation. Each line can be multple sentences or even a single word.
+    - Each line must start with the speaker's name in brackets followed by a colon
+    - Each line must be separated by one newline (\n)
+    - Example format:
+    [Alex]:Wonderful Day We're having!\n[Jamie]:It sure is![Alex]:I'm excited to dive into this topic today.\n[Jamie]:Me too! Let's begin.\n[Alex]:Great!
+    DO NOT include any additional text, greetings, or explanations.
+    `
+}
+
 export default {
     async fetch(request, env): Promise<Response> {
 
         const response = await env.AI.run(
             // @ts-ignore
-            "@cf/meta/llama-3.1-8b-instruct-fast",
+            "@cf/openai/gpt-oss-120b",
             {
-                prompt: `
-                Generate a simple podcast script with 2 hosts:
-                - Alex (knowledgeable and calm)
-                - Jamie (inquisitive, upbeat)
-
-                Topic: 'The incredible engineering of the human brain'
-
-                REQUIREMENTS:
-                1. Generate exactly 5 lines from each host (10 lines total)
-                2. Start with Alex introducing the topic
-                3. Hosts can ask questions, but REPLACE ALL QUESTION MARKS WITH PERIODS
-                4. Alex's first line MUST include:
-                    - A greeting
-                    - Introduction of both hosts by name
-                    - Introduction to "The Breakdown AI Podcast"
-                    - A short summary of the topic before diving into the subject
-                    - This initial line must be at least 5 sentences long
-                5. Jamie's final line MUST close out the podcast with a closing statement that includes their names and thanks the listener
-                6. Alternate between Alex and Jamie (bouncing back and forth)
-
-                FORMAT:
-                - Each line must start with the speaker's name in brackets followed by a colon
-                - Each line must be separated by TWO newlines (\n\n)
-                - Example format:
-                [Alex]:Wonderful Day We're having!
-
-                [Jamie]:It sure is!
-
-                DO NOT include any additional text, greetings, or explanations.
-                OUTPUT EXACTLY 10 LINES TOTAL (5 from Alex, 5 from Jamie) in the specified format.
-                `,
-                max_tokens: 3000,
+                input: getPrompt("Cloudflare as a company", 12),
             }
         );
 
-        console.log("Recived response from AI\n");
-
-        // 1. Parse lines and split by speaker
         // @ts-ignore
-        let lines: string[] = response.response.split("\n\n");
+        console.log("Received response from AI");
+
+        console.log("\n\n---------------\n")
+        
+        // @ts-ignore
+        let responseText = response.output[1].content[0].text; 
+
+        // @ts-ignore
+        let lines: string[] = responseText.split("\n");
         
         lines = lines.filter(line => {
             const trimmed = line.trim();
@@ -85,12 +90,12 @@ export default {
                 // @ts-ignore
                 audioStream = await env.AI.run("@cf/deepgram/aura-1", {
                     "text": text,
-                    "speaker": "asteria"
+                    "speaker": "luna"
                 });
                 podcastSegmentsInOrder.push(audioStream);
             }
-            console.log(text + "\n");
         }
+        console.log(lines)
         return new Response(await combineReadableStreams(podcastSegmentsInOrder));
     },
 } satisfies ExportedHandler<Env>;
