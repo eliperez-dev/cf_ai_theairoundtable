@@ -27,11 +27,12 @@ function getPrompt(topic: string, linesPerHost: number): string {
     4. Alex's first line MUST include:
         - A greeting
         - Introduction of both hosts by name
-        - Introduction to "The Breakdown AI Podcast"
+        - Introduction to "The AI Roundtable"
         - A short summary of the topic before diving into the subject
         - Alex's initial line must be at least 5 sentences long
     5. Jamie's and Alex's final line MUST close out the podcast with a closing statement that includes their names and thanks the listener
     6. Alternate between Alex and Jamie (bouncing back and forth)
+    7. Make sure to keep the conversation light and fun, with the ocacional use of humor and joke.
 
     FORMAT:
     - A line is simply what the speaker says during their turn. It can be arbitruarily long or short, but the turns should flow naturally like in real conversation. Each line can be multple sentences or even a single word.
@@ -45,58 +46,107 @@ function getPrompt(topic: string, linesPerHost: number): string {
 
 export default {
     async fetch(request, env): Promise<Response> {
-
-        const response = await env.AI.run(
-            // @ts-ignore
-            "@cf/openai/gpt-oss-120b",
-            {
-                input: getPrompt("Cloudflare as a company", 12),
-            }
-        );
-
-        // @ts-ignore
-        console.log("Received response from AI");
-
-        console.log("\n\n---------------\n")
-        
-        // @ts-ignore
-        let responseText = response.output[1].content[0].text; 
-
-        // @ts-ignore
-        let lines: string[] = responseText.split("\n");
-        
-        lines = lines.filter(line => {
-            const trimmed = line.trim();
-            return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
-        });
-        
-        let podcastSegmentsInOrder: ReadableStream<any>[] = [];
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const text = line.trim().split(/\]:\s*/)[1]?.trim(); 
-
-            if (!text) continue; 
-            let audioStream: ReadableStream;
-
-            if (line.startsWith("[Alex]:")) {
-                // @ts-ignore
-                audioStream = await env.AI.run("@cf/deepgram/aura-1", {
-                    "text": text,
-                    "speaker": "arcas" 
-                });
-                podcastSegmentsInOrder.push(audioStream);
-            } else if (line.startsWith("[Jamie]:")) {
-                // @ts-ignore
-                audioStream = await env.AI.run("@cf/deepgram/aura-1", {
-                    "text": text,
-                    "speaker": "luna"
-                });
-                podcastSegmentsInOrder.push(audioStream);
-            }
+        // Handle CORS preflight requests
+        if (request.method === 'OPTIONS') {
+            return new Response(null, {
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                }
+            });
         }
-        console.log(lines)
-        return new Response(await combineReadableStreams(podcastSegmentsInOrder));
+
+        try {
+            // Get topic from request
+            let topic = "Cloudflare as a company"; // Default topic
+            
+            if (request.method === 'POST') {
+                const body = await request.json() as { topic?: string };
+                if (body.topic && body.topic.trim()) {
+                    topic = body.topic.trim();
+                }
+            }
+
+            console.log(`Generating podcast for topic: ${topic}`);
+
+            // Generate script using AI
+            const response = await env.AI.run(
+                // @ts-ignore
+                "@cf/openai/gpt-oss-120b",
+                {
+                    input: getPrompt(topic, 12),
+                }
+            );
+
+            // @ts-ignore
+            console.log("Received response from AI");
+
+            console.log("\n\n---------------\n")
+            
+            // @ts-ignore
+            let responseText = response.output[1].content[0].text; 
+
+            // @ts-ignore
+            let lines: string[] = responseText.split("\n");
+            
+            lines = lines.filter(line => {
+                const trimmed = line.trim();
+                return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
+            });
+            
+            console.log(`Parsed ${lines.length} lines from script`);
+            
+            let podcastSegmentsInOrder: ReadableStream<any>[] = [];
+
+            // Generate TTS for each line
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const text = line.trim().split(/\]:\s*/)[1]?.trim(); 
+
+                if (!text) continue; 
+                
+                console.log(`Generating audio for line ${i + 1}/${lines.length}`);
+                let audioStream: ReadableStream;
+
+                if (line.startsWith("[Alex]:")) {
+                    // @ts-ignore
+                    audioStream = await env.AI.run("@cf/deepgram/aura-1", {
+                        "text": text,
+                        "speaker": "arcas" 
+                    });
+                    podcastSegmentsInOrder.push(audioStream);
+                } else if (line.startsWith("[Jamie]:")) {
+                    // @ts-ignore
+                    audioStream = await env.AI.run("@cf/deepgram/aura-1", {
+                        "text": text,
+                        "speaker": "luna"
+                    });
+                    podcastSegmentsInOrder.push(audioStream);
+                }
+            }
+            
+            console.log(`Combining ${podcastSegmentsInOrder.length} audio segments`);
+            
+            return new Response(await combineReadableStreams(podcastSegmentsInOrder), {
+                headers: {
+                    'Content-Type': 'audio/mpeg',
+                    'Access-Control-Allow-Origin': '*',
+                }
+            });
+        } catch (error) {
+            console.error('Error generating podcast:', error);
+            return new Response(JSON.stringify({ 
+                error: 'Failed to generate podcast',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            }), {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                }
+            });
+        }
     },
 } satisfies ExportedHandler<Env>;
 

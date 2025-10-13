@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The AI Roundtable Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.loading {
+            display: block;
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.error {
+            display: block;
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .status.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .audio-player {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .audio-player.show {
+            display: block;
+        }
+
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .download-btn {
+            margin-top: 10px;
+            background: #4caf50;
+            padding: 10px 20px;
+            width: auto;
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .download-btn:hover {
+            background: #45a049;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .example-topics {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .example-topics span {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .example-topics span:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The AI Roundtable</h1>
+        <p class="subtitle">Transform any topic into a conversational podcast</p>
+
+        <form id="podcastForm">
+            <div class="input-group">
+                <label for="topic">What should Alex and Jamie discuss?</label>
+                <textarea 
+                    id="topic" 
+                    name="topic" 
+                    placeholder="Enter a topic or paste some text... (e.g., 'The future of artificial intelligence' or 'How photosynthesis works')"
+                    required
+                ></textarea>
+                <div class="example-topics">
+                    Try: 
+                    <span onclick="setTopic('The history of the internet')">The history of the internet</span>
+                    <span onclick="setTopic('How black holes work')">How black holes work</span>
+                    <span onclick="setTopic('The benefits of meditation')">The benefits of meditation</span>
+                </div>
+            </div>
+
+            <button type="submit" id="generateBtn">
+                Generate Podcast
+            </button>
+        </form>
+
+        <div id="status" class="status"></div>
+
+        <div id="audioPlayer" class="audio-player">
+            <h3>Your Podcast is Ready! 🎉</h3>
+            <audio id="audio" controls></audio>
+            <a id="downloadBtn" class="download-btn" download="podcast.mp3">
+                📥 Download Podcast
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('podcastForm');
+        const topicInput = document.getElementById('topic');
+        const generateBtn = document.getElementById('generateBtn');
+        const statusDiv = document.getElementById('status');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audio');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Configure your worker URL here
+        const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
+
+        function setTopic(topic) {
+            topicInput.value = topic;
+        }
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function hideStatus() {
+            statusDiv.className = 'status';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const topic = topicInput.value.trim();
+            if (!topic) {
+                showStatus('Please enter a topic', 'error');
+                return;
+            }
+
+            // Hide previous audio player
+            audioPlayer.classList.remove('show');
+            
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="spinner"></span> Generating your podcast...';
+            showStatus('Alex and Jamie are discussing the topic ... this may take 30-60 seconds.', 'loading');
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ topic })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                // Get the audio blob
+                const audioBlob = await response.blob();
+                
+                // Create a URL for the audio blob
+                const audioUrl = URL.createObjectURL(audioBlob);
+                
+                // Set up audio player
+                audioElement.src = audioUrl;
+                downloadBtn.href = audioUrl;
+                downloadBtn.download = `podcast-${Date.now()}.mp3`;
+                
+                // Show success
+                showStatus('✅ Podcast generated successfully!', 'success');
+                audioPlayer.classList.add('show');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}. Make sure your worker is running!`, 'error');
+            } finally {
+                // Reset button
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Podcast';
+            }
+        });
+
+        // Auto-hide success message after 3 seconds
+        const observer = new MutationObserver(() => {
+            if (statusDiv.classList.contains('success')) {
+                setTimeout(() => {
+                    if (statusDiv.classList.contains('success')) {
+                        hideStatus();
+                    }
+                }, 3000);
+            }
+        });
+        observer.observe(statusDiv, { attributes: true, attributeFilter: ['class'] });
+    </script>
+</body>
+</html>
