@@ -1,0 +1,11 @@
+
+## ToDo
+
+- [ ] Incoperate WASM Rust module into worker
+
+####  Simple proof of concept
+
+- [ ] AI creates podcast script
+- [ ] Generate text to speach audio files for each AI podcaster
+- [ ] Combine audio files into one mp3 file using WASM Rust
+- [ ] Output combined audio file
