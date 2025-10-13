@@ -25,12 +25,37 @@ export default {
       // @ts-ignore
       "@cf/meta/llama-3.1-8b-instruct-fast",
       {
-        prompt: "\
-        Generate a simple podcast script with 2 hosts,\
-        Alex (Knowlegeble and calm) and Jamie (inquisitive, upbeat), on the topic of 'The future of AI'.\
-        Generate 5 lines from each host, starting with Alex introducing the topic, the hosts are allowes to ask questions, but replace all question marks with periods \
-        then bouncing back and forth from alex and jamie.Do not greet me, only output as I tell you. Output exacly like this, with a line break between each line, and a colon after each speaker. Example:\
-        [Alex]:Wonderful Day We're having!\n\n[Jamie]:It sure is!",
+        prompt: `
+          Generate a simple podcast script with 2 hosts:
+          - Alex (knowledgeable and calm)
+          - Jamie (inquisitive, upbeat)
+
+          Topic: 'The incredible engineering of the human brain'
+
+          REQUIREMENTS:
+          1. Generate exactly 5 lines from each host (10 lines total)
+          2. Start with Alex introducing the topic
+          3. Hosts can ask questions, but REPLACE ALL QUESTION MARKS WITH PERIODS
+          4. Alex's first line MUST include:
+            - A greeting
+            - Introduction of both hosts by name
+            - Introduction to "The Breakdown AI Podcast"
+            - A short summary of the topic before diving into the subject
+            - This initial line must be at least 4 sentences long
+          5. Jamie's final line MUST close out the podcast with a closing statement that includes their names and thanks the listener
+          6. Alternate between Alex and Jamie (bouncing back and forth)
+
+          FORMAT:
+          - Each line must start with the speaker's name in brackets followed by a colon
+          - Each line must be separated by TWO newlines
+          - Example format:
+          [Alex]:Wonderful Day We're having!
+
+          [Jamie]:It sure is!
+
+          DO NOT include any additional text, greetings, or explanations.
+          OUTPUT EXACTLY 10 LINES TOTAL (5 from Alex, 5 from Jamie) in the specified format.
+          `,
         max_tokens: 3000,
       }
     );
@@ -78,6 +103,6 @@ export default {
     }
 
     // @ts-ignore
-    return new Response(jamieAudios[0]);
+    return new Response(alexAudios[0]);
   },
 } satisfies ExportedHandler<Env>;
