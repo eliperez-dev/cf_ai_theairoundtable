@@ -9,3 +9,5 @@
 > Change the readme to more accuratly reflect the current state of the project, as well as future steps (building text input with cloudlfare pages, r2 storage etc)
 
 > Generate an template index.html for the cloudflare page which the user will interact with. The page should have a textarea where they can enter their topic, and then return the audio from the backend.
+
+> Factor out the js and css in the index.html
