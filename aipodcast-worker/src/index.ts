@@ -75,8 +75,9 @@ export default {
                 });
             } else {
                 // Generate script using AI
-                // Brief: 6 lines per host (12 total), Deep: 9 lines per host (18 total)
-                const linesPerHost = style === 'deep' ? 25 : 10;
+                // Brief: 10 lines per host (20 total), Deep: 12 lines per host (24 total)
+                // Note: Limited by Cloudflare Workers 30-second CPU time limit
+                const linesPerHost = style === 'deep' ? 12 : 10;
                 
                 const response = await env.AI.run(
                     // @ts-ignore
@@ -128,7 +129,7 @@ export default {
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
                 
-                const speaker = line.startsWith("[Alex]:") ? "arcas" : "helios";
+                const speaker = line.startsWith("[Alex]:") ? "arcas" : "luna";
                 
                 // Generate audio with retry logic
                 const audioStream = await generateAudioWithRetry(
@@ -253,13 +254,13 @@ async function combineReadableStreams(streams: ReadableStream[]): Promise<Readab
 }
 
 function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep'): string {
-    // Brief: 2-3 sentences per line, Deep: 3-6 sentences per line
+    // Brief: 2-3 sentences per line, Deep: 6-10 sentences per line with extensive detail
     const sentenceGuidance = style === 'deep' 
-        ? 'Each line should be 3-6 sentences long, providing detailed explanations and insights.'
+        ? 'Each line should be 6-10 sentences long (minimum 80-100 words per line), providing EXTENSIVE detailed explanations, multiple examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
         : 'Each line should be 2-3 sentences long, keeping the conversation concise and engaging.';
     
     const styleGuidance = style === 'deep'
-        ? 'This is a DEEP DIVE podcast - go into detail, explore nuances, provide examples, and have a thorough discussion.'
+        ? 'This is a DEEP DIVE podcast - go into EXTENSIVE detail, explore nuances, provide multiple examples, discuss implications, and have a thorough, in-depth discussion. Each speaker should elaborate significantly on their points.'
         : 'This is a BRIEF TALK podcast - keep it concise, hit the key points, and maintain a brisk pace.';
 
     return `
@@ -281,10 +282,11 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
         - Introduction of both hosts by name
         - Introduction to "The Roundtable"
         - A short summary of the topic before diving into the subject / context the user submitted, and mention what was the user submitted. Refer to the user as "the user".
-        - Alex's initial line must be at least 5 sentences long
+        - Alex's initial line must be at least ${style === 'deep' ? '8' : '5'} sentences long
     6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
     7. Alternate between Alex and Jamie (bouncing back and forth)
     8. Make sure to keep the conversation light and fun, with the occasional use of humor and jokes. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
+    ${style === 'deep' ? '9. IMPORTANT FOR DEEP DIVE: Make each response substantial and detailed. Speakers should elaborate on their points, provide context, share examples, and explore different angles. Avoid brief responses - this is meant to be an in-depth discussion.' : ''}
 
     FORMAT:
     - A line is simply what the speaker says during their turn. It can be arbitrarily long or short, but the turns should flow naturally like in real conversation. Each line can be multiple sentences or even a single word.
