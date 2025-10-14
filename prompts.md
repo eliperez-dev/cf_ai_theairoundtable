@@ -11,3 +11,5 @@
 > Generate an template index.html for the cloudflare page which the user will interact with. The page should have a textarea where they can enter their topic, and then return the audio from the backend.
 
 > Factor out the js and css in the index.html
+
+> Create a deployment script in powershell that deploys the page and worker to cloudflare. 

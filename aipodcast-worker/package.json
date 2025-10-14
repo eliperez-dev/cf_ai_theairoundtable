@@ -4,6 +4,8 @@
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
+		"deploy:pages": "wrangler pages deploy ../pages --project-name=ai-roundtable",
+		"deploy:all": "npm run deploy && npm run deploy:pages",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
 		"test": "vitest",
