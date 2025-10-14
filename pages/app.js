@@ -7,8 +7,12 @@ const statusDiv = document.getElementById('status');
 const audioPlayer = document.getElementById('audioPlayer');
 const audioElement = document.getElementById('audio');
 const downloadBtn = document.getElementById('downloadBtn');
+const downloadTranscriptBtn = document.getElementById('downloadTranscriptBtn');
 const transcriptSidebar = document.getElementById('transcriptSidebar');
 const transcriptContent = document.getElementById('transcriptContent');
+
+// Store current transcript data
+let currentTranscript = [];
 
 // Configure your worker URL here
 const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
@@ -67,6 +71,7 @@ function parseTranscript(scriptText) {
  * @param {Array} transcript - Array of transcript objects
  */
 function displayTranscript(transcript) {
+    currentTranscript = transcript; // Store for download
     transcriptContent.innerHTML = '';
     
     transcript.forEach(line => {
@@ -222,3 +227,33 @@ const observer = new MutationObserver(() => {
     }
 });
 observer.observe(statusDiv, { attributes: true, attributeFilter: ['class'] });
+
+// Download transcript button handler
+downloadTranscriptBtn.addEventListener('click', () => {
+    if (currentTranscript.length === 0) {
+        showStatus('No transcript available to download', 'error');
+        return;
+    }
+    
+    // Format transcript as text
+    let transcriptText = 'AI Roundtable Podcast Transcript\n';
+    transcriptText += '='.repeat(50) + '\n\n';
+    
+    currentTranscript.forEach(line => {
+        transcriptText += `${line.speaker}:\n${line.text}\n\n`;
+    });
+    
+    // Create blob and download
+    const blob = new Blob([transcriptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `podcast-transcript-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showStatus('Transcript downloaded successfully', 'success');
+});

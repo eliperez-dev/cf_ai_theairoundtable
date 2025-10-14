@@ -133,7 +133,7 @@ export default {
                     // @ts-ignore
                     audioStream = await env.AI.run("@cf/deepgram/aura-1", {
                         "text": text,
-                        "speaker": "angus" // helios is alright
+                        "speaker": "orion" // helios is alright
                     });
                     podcastSegmentsInOrder.push(audioStream);
                 }

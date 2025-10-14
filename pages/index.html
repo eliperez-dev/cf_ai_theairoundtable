@@ -35,13 +35,22 @@
                 <div id="audioPlayer" class="audio-player">
                 <h3>Ready to listen</h3>
                 <audio id="audio" controls></audio>
-                <a id="downloadBtn" class="download-btn" download="podcast.mp3">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 11L4 7H6.5V2H9.5V7H12L8 11Z" fill="currentColor"/>
-                        <path d="M2 13H14V14H2V13Z" fill="currentColor"/>
-                    </svg>
-                    Download
-                </a>
+                <div class="download-buttons">
+                    <a id="downloadBtn" class="download-btn" download="podcast.mp3">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 11L4 7H6.5V2H9.5V7H12L8 11Z" fill="currentColor"/>
+                            <path d="M2 13H14V14H2V13Z" fill="currentColor"/>
+                        </svg>
+                        Download MP3
+                    </a>
+                    <a id="downloadTranscriptBtn" class="download-btn download-transcript-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 11L4 7H6.5V2H9.5V7H12L8 11Z" fill="currentColor"/>
+                            <path d="M2 13H14V14H2V13Z" fill="currentColor"/>
+                        </svg>
+                        Download Transcript
+                    </a>
+                </div>
             
             </div>
 
@@ -58,8 +67,6 @@
                 Generate Podcast from Today's Top Stories
             </button>
 
-            <div id="status" class="status"></div>
-
             
         </div>
 
@@ -70,6 +77,8 @@
             </div>
         </div>
     </div>
+
+    <div id="status" class="status"></div>
 
     <script src="app.js"></script>
 </body>
