@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roundtable Podcast Generator</title>
+    <title>The AI Roundtable</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,15 +12,16 @@
             <div class="header">
                 <h1>The AI Roundtable</h1>
                 <p class="subtitle">Generate conversational podcasts on any topic. </p>
-            </div>
+            </div> 
+
+
 
             <form id="podcastForm">
                 <div class="input-group">
-                    <label for="topic">Topic for Alex and Jamie to discuss: </label>
                     <textarea 
                         id="topic" 
                         name="topic" 
-                        placeholder="Enter any topic you'd like to explore..."
+                        placeholder="Enter any topic you'd like Alex and Jamie to explore, or submit text you'd like them to deep dive into..."
                         required
                     ></textarea>
                     <div class="example-topics">
@@ -31,14 +32,7 @@
                     </div>
                 </div>
 
-                <button type="submit" id="generateBtn">
-                    Create Podcast
-                </button>
-            </form>
-
-            <div id="status" class="status"></div>
-
-            <div id="audioPlayer" class="audio-player">
+                <div id="audioPlayer" class="audio-player">
                 <h3>Ready to listen</h3>
                 <audio id="audio" controls></audio>
                 <a id="downloadBtn" class="download-btn" download="podcast.mp3">
@@ -48,7 +42,25 @@
                     </svg>
                     Download
                 </a>
+            
             </div>
+
+                <button type="submit" id="generateBtn">
+                    Create Podcast
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button type="button" id="headlinesBtn" class="headlines-btn">
+                Generate Podcast from Today's Top Stories
+            </button>
+
+            <div id="status" class="status"></div>
+
+            
         </div>
 
         <div class="sidebar" id="transcriptSidebar">

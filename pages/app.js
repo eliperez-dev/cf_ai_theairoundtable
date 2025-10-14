@@ -2,6 +2,7 @@
 const form = document.getElementById('podcastForm');
 const topicInput = document.getElementById('topic');
 const generateBtn = document.getElementById('generateBtn');
+const headlinesBtn = document.getElementById('headlinesBtn');
 const statusDiv = document.getElementById('status');
 const audioPlayer = document.getElementById('audioPlayer');
 const audioElement = document.getElementById('audio');
@@ -11,6 +12,7 @@ const transcriptContent = document.getElementById('transcriptContent');
 
 // Configure your worker URL here
 const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
+const HEADLINES_URL = `https://api.thenewsapi.com/v1/news/all?api_token=gFRazLJ01XoJ5JDwBvrh56aSI1sGiRz2qh6qFZng&language=en&limit=3`;
 
 /**
  * Set the topic input value
@@ -85,28 +87,24 @@ function displayTranscript(transcript) {
     });
 }
 
-// Form submission handler
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const topic = topicInput.value.trim();
-    if (!topic) {
-        showStatus('Please enter a topic', 'error');
-        return;
-    }
-
+/**
+ * Generate podcast from a topic
+ * @param {string} topic - The topic to generate podcast from
+ */
+async function generatePodcast(topic) {
     // Hide previous audio player and reset transcript
     audioPlayer.classList.remove('show');
     transcriptContent.innerHTML = '<div class="transcript-empty">Generating transcript... this may take 30-60 seconds</div>';
     
     // Show loading state
     generateBtn.disabled = true;
+    headlinesBtn.disabled = true;
     generateBtn.innerHTML = '<span class="spinner"></span> Creating podcast...';
     showStatus('Generating conversation... this typically takes 30-60 seconds', 'loading');
 
     try {
         // First, fetch the transcript
-        showStatus('Generating script...', 'loading');
+        showStatus('Generating script... this typically takes 30-60 seconds', 'loading');
         const transcriptResponse = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
@@ -124,7 +122,7 @@ form.addEventListener('submit', async (e) => {
         displayTranscript(transcript);
 
         // Then, fetch the audio using the same script
-        showStatus('Generating audio... this may take 30-60 seconds', 'loading');
+        showStatus('Generating audio... this may take another 30-60 seconds', 'loading');
         const audioResponse = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
@@ -156,9 +154,60 @@ form.addEventListener('submit', async (e) => {
         console.error('Error:', error);
         showStatus(`Error: ${error.message}. Please check your connection and try again.`, 'error');
     } finally {
-        // Reset button
+        // Reset buttons
         generateBtn.disabled = false;
+        headlinesBtn.disabled = false;
         generateBtn.textContent = 'Create Podcast';
+        headlinesBtn.innerHTML = '📰 Generate Podcast from Today\'s Headlines';
+    }
+}
+
+// Form submission handler
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const topic = topicInput.value.trim();
+    if (!topic) {
+        showStatus('Please enter a topic', 'error');
+        return;
+    }
+
+    await generatePodcast(topic);
+});
+
+// Headlines button handler
+headlinesBtn.addEventListener('click', async () => {
+    try {
+        // Disable buttons and show loading state
+        generateBtn.disabled = true;
+        headlinesBtn.disabled = true;
+        headlinesBtn.innerHTML = '<span class="spinner"></span> Fetching headlines...';
+        showStatus('Fetching today\'s headlines...', 'loading');
+
+        // Fetch headlines from worker endpoint (which proxies to News API)
+        const newsResponse = await fetch(HEADLINES_URL);
+        
+        if (!newsResponse.ok) {
+            throw new Error(`Failed to fetch headlines: ${newsResponse.status}`);
+        }
+
+        const newsData = await newsResponse.json();
+        
+        // Format the headlines data as a JSON string
+        const headlinesJson = JSON.stringify(newsData, null, 2);
+        
+        // Create the topic with instructions prefixed
+        const topic = `Generate a podcast going over top stoires today. Here is the news data in JSON format:\n\n${headlinesJson}`;
+        
+        // Generate the podcast
+        await generatePodcast(topic);
+        
+    } catch (error) {
+        console.error('Error fetching headlines:', error);
+        showStatus(`Error: ${error.message}. Please try again.`, 'error');
+        generateBtn.disabled = false;
+        headlinesBtn.disabled = false;
+        headlinesBtn.innerHTML = '📰 Generate Podcast from Today\'s Headlines';
     }
 });
 

@@ -90,7 +90,7 @@ body {
 }
 
 .header {
-    margin-bottom: 40px;
+    margin-bottom: 24px;
 }
 
 h1 {
@@ -197,6 +197,37 @@ button:disabled {
     cursor: not-allowed;
 }
 
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+    color: #606060;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.divider span {
+    padding: 0 16px;
+}
+
+.headlines-btn {
+    background: linear-gradient(135deg, #7da3cc 0%, #5a8ab8 100%);
+    color: #ffffff;
+    margin-bottom: 24px;
+}
+
+.headlines-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #8db3dc 0%, #6a9ac8 100%);
+}
+
 .status {
     margin-top: 24px;
     padding: 14px 16px;
@@ -230,7 +261,7 @@ button:disabled {
 }
 
 .audio-player {
-    margin-top: 32px;
+    margin-top: 48px;
     padding: 24px;
     background: #141414;
     border: 1px solid #2a2a2a;

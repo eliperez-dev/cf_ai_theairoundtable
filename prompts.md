@@ -13,3 +13,5 @@
 > Factor out the js and css in the index.html
 
 > Create a deployment script in powershell that deploys the page and worker to cloudflare. 
+
+> Add a button on the front end which creates the podcast off the recent headlines from the TheNewsAPI
