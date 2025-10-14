@@ -154,7 +154,7 @@ async function generatePodcast(topic, style = 'brief') {
 
         // Then, fetch the audio using the same script
         const audioEstimatedTime = style === 'deep' ? '90-120 seconds' : '60-90 seconds';
-        showStatus(`Generating audio... this may take another ${audioEstimatedTime}`, 'loading');
+        showStatus(`Script generated! Generating audio... this may take another ${audioEstimatedTime}`, 'loading');
         
         // Create an AbortController with a longer timeout (3 minutes for brief, 5 minutes for deep)
         const controller = new AbortController();
