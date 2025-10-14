@@ -10,9 +10,11 @@ const downloadBtn = document.getElementById('downloadBtn');
 const downloadTranscriptBtn = document.getElementById('downloadTranscriptBtn');
 const transcriptSidebar = document.getElementById('transcriptSidebar');
 const transcriptContent = document.getElementById('transcriptContent');
+const styleOptions = document.querySelectorAll('.style-option');
 
-// Store current transcript data
+// Store current transcript data and selected style
 let currentTranscript = [];
+let selectedStyle = 'brief'; // default
 
 // Configure your worker URL here
 const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
@@ -25,6 +27,20 @@ const HEADLINES_URL = `https://api.thenewsapi.com/v1/news/all?api_token=gFRazLJ0
 function setTopic(topic) {
     topicInput.value = topic;
 }
+
+/**
+ * Handle style option selection
+ */
+styleOptions.forEach(option => {
+    option.addEventListener('click', () => {
+        // Remove active class from all options
+        styleOptions.forEach(opt => opt.classList.remove('active'));
+        // Add active class to clicked option
+        option.classList.add('active');
+        // Update selected style
+        selectedStyle = option.dataset.style;
+    });
+});
 
 /**
  * Show status message
@@ -95,8 +111,9 @@ function displayTranscript(transcript) {
 /**
  * Generate podcast from a topic
  * @param {string} topic - The topic to generate podcast from
+ * @param {string} style - The podcast style ('brief' or 'deep')
  */
-async function generatePodcast(topic) {
+async function generatePodcast(topic, style = 'brief') {
     // Hide previous audio player and reset transcript
     audioPlayer.classList.remove('show');
     transcriptContent.innerHTML = '<div class="transcript-empty">Generating transcript... this may take 30-60 seconds</div>';
@@ -109,7 +126,8 @@ async function generatePodcast(topic) {
 
     try {
         // First, fetch the transcript
-        showStatus('Generating script... this typically takes 30-60 seconds', 'loading');
+        const estimatedTime = style === 'deep' ? '60-90 seconds' : '30-60 seconds';
+        showStatus(`Generating script... this typically takes ${estimatedTime}`, 'loading');
         
         // Create an AbortController with timeout for transcript (2 minutes should be enough)
         const transcriptController = new AbortController();
@@ -120,7 +138,7 @@ async function generatePodcast(topic) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ topic, transcript: true }),
+            body: JSON.stringify({ topic, transcript: true, style }),
             signal: transcriptController.signal
         });
         
@@ -135,11 +153,13 @@ async function generatePodcast(topic) {
         displayTranscript(transcript);
 
         // Then, fetch the audio using the same script
-        showStatus('Generating audio... this may take another 60-90 seconds', 'loading');
+        const audioEstimatedTime = style === 'deep' ? '90-120 seconds' : '60-90 seconds';
+        showStatus(`Generating audio... this may take another ${audioEstimatedTime}`, 'loading');
         
-        // Create an AbortController with a longer timeout (3 minutes)
+        // Create an AbortController with a longer timeout (3 minutes for brief, 5 minutes for deep)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes
+        const timeoutMs = style === 'deep' ? 300000 : 180000; // 5 min for deep, 3 min for brief
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         try {
             const audioResponse = await fetch(WORKER_URL, {
@@ -147,7 +167,7 @@ async function generatePodcast(topic) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ topic, script: transcriptData.transcript }),
+                body: JSON.stringify({ topic, script: transcriptData.transcript, style }),
                 signal: controller.signal
             });
             
@@ -202,7 +222,7 @@ form.addEventListener('submit', async (e) => {
         return;
     }
 
-    await generatePodcast(topic);
+    await generatePodcast(topic, selectedStyle);
 });
 
 // Headlines button handler
@@ -229,8 +249,8 @@ headlinesBtn.addEventListener('click', async () => {
         // Create the topic with instructions prefixed
         const topic = `Generate a podcast going over top stoires today. Here is the news data in JSON format:\n\n${headlinesJson}`;
         
-        // Generate the podcast
-        await generatePodcast(topic);
+        // Generate the podcast with selected style
+        await generatePodcast(topic, selectedStyle);
         
     } catch (error) {
         console.error('Error fetching headlines:', error);

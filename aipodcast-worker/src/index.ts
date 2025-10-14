@@ -43,9 +43,10 @@ export default {
             let topic = "Cloudflare as a company"; // Default topic
             let returnTranscript = url.searchParams.get('transcript') === 'true';
             let providedScript: string | undefined;
+            let style: 'brief' | 'deep' = 'brief'; // Default style
             
             if (request.method === 'POST') {
-                const body = await request.json() as { topic?: string; transcript?: boolean; script?: string };
+                const body = await request.json() as { topic?: string; transcript?: boolean; script?: string; style?: 'brief' | 'deep' };
                 if (body.topic && body.topic.trim()) {
                     topic = body.topic.trim();
                 }
@@ -54,6 +55,9 @@ export default {
                 }
                 if (body.script) {
                     providedScript = body.script;
+                }
+                if (body.style) {
+                    style = body.style;
                 }
             }
 
@@ -71,11 +75,14 @@ export default {
                 });
             } else {
                 // Generate script using AI
+                // Brief: 6 lines per host (12 total), Deep: 9 lines per host (18 total)
+                const linesPerHost = style === 'deep' ? 25 : 10;
+                
                 const response = await env.AI.run(
                     // @ts-ignore
                     "@cf/openai/gpt-oss-120b",
                     {
-                        input: getPrompt(topic, 12),
+                        input: getPrompt(topic, linesPerHost, style),
                     }
                 );
 
@@ -121,7 +128,7 @@ export default {
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
                 
-                const speaker = line.startsWith("[Alex]:") ? "arcas" : "orion";
+                const speaker = line.startsWith("[Alex]:") ? "arcas" : "helios";
                 
                 // Generate audio with retry logic
                 const audioStream = await generateAudioWithRetry(
@@ -139,11 +146,8 @@ export default {
                     console.warn(`Failed to generate audio for line ${i + 1}, skipping...`);
                 }
                 
-                // Add a small delay between requests to avoid rate limiting
-                // Skip delay for the last item
-                if (i < lines.length - 1) {
-                    await sleep(50); // 50ms delay between requests (reduced from 100ms)
-                }
+                // No artificial delay - only retry delays when errors occur
+                // This makes the process much faster when everything works
             }
             
             console.log(`Combining ${podcastSegmentsInOrder.length} audio segments`);
@@ -198,6 +202,7 @@ async function generateAudioWithRetry(
             if (attempt > 1) {
                 console.log(`Successfully generated audio for line ${lineNumber}/${totalLines} on attempt ${attempt}`);
             }
+            // @ts-ignore
             return audioStream;
             
         } catch (error) {
@@ -247,32 +252,42 @@ async function combineReadableStreams(streams: ReadableStream[]): Promise<Readab
   });
 }
 
-function getPrompt(context: string, linesPerHost: number): string {
+function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep'): string {
+    // Brief: 2-3 sentences per line, Deep: 3-6 sentences per line
+    const sentenceGuidance = style === 'deep' 
+        ? 'Each line should be 3-6 sentences long, providing detailed explanations and insights.'
+        : 'Each line should be 2-3 sentences long, keeping the conversation concise and engaging.';
+    
+    const styleGuidance = style === 'deep'
+        ? 'This is a DEEP DIVE podcast - go into detail, explore nuances, provide examples, and have a thorough discussion.'
+        : 'This is a BRIEF TALK podcast - keep it concise, hit the key points, and maintain a brisk pace.';
 
-
- return `
+    return `
     Generate a simple podcast script with 2 hosts:
     - Alex (knowledgeable and calm, presenting the topic)
-    - Jamie (inquisitive, upbeat, intrigued, also knowledgeable of the topic, adding value to the discussion)
+    - Jamie (upbeat, intrigued, also somewhat knowledgeable of the topic but should be relateable to the viewer, adding value to the discussion)
 
-    User submitted context / topic: "${context}
+    User submitted context / topic: "${context}"
+
+    STYLE: ${styleGuidance}
 
     REQUIREMENTS:
-    1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2}} lines total)
-    2. Start with Alex introducing the topic
-    3. Expand all accronyms. Example: U.S to United States. Make sure the hosts are speaking to each other and refer to each other.
-    4. Alex's first line MUST include:
+    1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2} lines total)
+    2. ${sentenceGuidance}
+    3. Start with Alex introducing the topic. Make sure both hosts are in conversation with each other and refer to each other. Alex should speak most of the podcast duration, since he is introducing the topic.
+    4. Expand all acronyms. Example: U.S to United States.
+    5. Alex's first line MUST include:
         - A greeting
         - Introduction of both hosts by name
         - Introduction to "The Roundtable"
-        - A short summary of the topic before diving into the subject / context the user submitted, and mention what is was the user submitted. Refer to the user as "the user".
+        - A short summary of the topic before diving into the subject / context the user submitted, and mention what was the user submitted. Refer to the user as "the user".
         - Alex's initial line must be at least 5 sentences long
-    5. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
-    6. Alternate between Alex and Jamie (bouncing back and forth)
-    7. Make sure to keep the conversation light and fun, with the ocacional use of humor and joke. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
+    6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
+    7. Alternate between Alex and Jamie (bouncing back and forth)
+    8. Make sure to keep the conversation light and fun, with the occasional use of humor and jokes. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
 
     FORMAT:
-    - A line is simply what the speaker says during their turn. It can be arbitruarily long or short, but the turns should flow naturally like in real conversation. Each line can be multple sentences or even a single word.
+    - A line is simply what the speaker says during their turn. It can be arbitrarily long or short, but the turns should flow naturally like in real conversation. Each line can be multiple sentences or even a single word.
     - Each line must start with the speaker's name in brackets followed by a colon
     - Each line must be separated by one newline (\n)
     - Example format:

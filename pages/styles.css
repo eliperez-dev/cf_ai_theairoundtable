@@ -169,6 +169,66 @@ textarea:focus {
     border-color: #3a3a3a;
 }
 
+.style-selector {
+    margin-bottom: 24px;
+}
+
+.style-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.style-option {
+    width: 100%;
+    padding: 16px;
+    background: #0f0f0f;
+    color: #a0a0a0;
+    border: 2px solid #2a2a2a;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
+.style-option:hover {
+    background: #141414;
+    border-color: #3a3a3a;
+    color: #d0d0d0;
+    transform: translateY(-2px);
+}
+
+.style-option.active {
+    background: #1a2332;
+    border-color: #7da3cc;
+    color: #ffffff;
+}
+
+.style-option.active:hover {
+    background: #1f2838;
+    transform: translateY(-2px);
+}
+
+.style-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.style-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.style-desc {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
 button {
     width: 100%;
     padding: 14px 24px;
@@ -379,5 +439,25 @@ audio {
 
     .subtitle {
         font-size: 0.9375rem;
+    }
+
+    .style-options {
+        grid-template-columns: 1fr;
+    }
+
+    .style-option {
+        padding: 14px;
+    }
+
+    .style-icon {
+        font-size: 20px;
+    }
+
+    .style-name {
+        font-size: 14px;
+    }
+
+    .style-desc {
+        font-size: 11px;
     }
 }
