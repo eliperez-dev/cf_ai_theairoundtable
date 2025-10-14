@@ -112,7 +112,7 @@ export default {
             
             let podcastSegmentsInOrder: ReadableStream<any>[] = [];
 
-            // Generate TTS for each line
+            // Generate TTS for each line with retry logic and rate limiting
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const text = line.trim().split(/\]:\s*/)[1]?.trim(); 
@@ -120,22 +120,29 @@ export default {
                 if (!text) continue; 
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
-                let audioStream: ReadableStream;
-
-                if (line.startsWith("[Alex]:")) {
-                    // @ts-ignore
-                    audioStream = await env.AI.run("@cf/deepgram/aura-1", {
-                        "text": text,
-                        "speaker": "arcas" 
-                    });
+                
+                const speaker = line.startsWith("[Alex]:") ? "arcas" : "orion";
+                
+                // Generate audio with retry logic
+                const audioStream = await generateAudioWithRetry(
+                    env.AI,
+                    text,
+                    speaker,
+                    3, // max retries
+                    i + 1,
+                    lines.length
+                );
+                
+                if (audioStream) {
                     podcastSegmentsInOrder.push(audioStream);
-                } else if (line.startsWith("[Jamie]:")) {
-                    // @ts-ignore
-                    audioStream = await env.AI.run("@cf/deepgram/aura-1", {
-                        "text": text,
-                        "speaker": "orion" // helios is alright
-                    });
-                    podcastSegmentsInOrder.push(audioStream);
+                } else {
+                    console.warn(`Failed to generate audio for line ${i + 1}, skipping...`);
+                }
+                
+                // Add a small delay between requests to avoid rate limiting
+                // Skip delay for the last item
+                if (i < lines.length - 1) {
+                    await sleep(50); // 50ms delay between requests (reduced from 100ms)
                 }
             }
             
@@ -162,6 +169,54 @@ export default {
         }
     },
 } satisfies ExportedHandler<Env>;
+
+// Helper function to sleep for a specified duration
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Helper function to generate audio with retry logic
+async function generateAudioWithRetry(
+    ai: Ai,
+    text: string,
+    speaker: string,
+    maxRetries: number,
+    lineNumber: number,
+    totalLines: number
+): Promise<ReadableStream | null> {
+    let lastError: Error | null = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            // @ts-ignore
+            const audioStream = await ai.run("@cf/deepgram/aura-1", {
+                "text": text,
+                "speaker": speaker
+            });
+            
+            // Success!
+            if (attempt > 1) {
+                console.log(`Successfully generated audio for line ${lineNumber}/${totalLines} on attempt ${attempt}`);
+            }
+            return audioStream;
+            
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            console.error(`Attempt ${attempt}/${maxRetries} failed for line ${lineNumber}/${totalLines}:`, lastError.message);
+            
+            // If this isn't the last attempt, wait before retrying with exponential backoff
+            if (attempt < maxRetries) {
+                const backoffMs = Math.min(500 * Math.pow(2, attempt - 1), 2000); // Reduced: 500ms, 1s, 2s max
+                console.log(`Waiting ${backoffMs}ms before retry...`);
+                await sleep(backoffMs);
+            }
+        }
+    }
+    
+    // All retries failed
+    console.error(`Failed to generate audio for line ${lineNumber}/${totalLines} after ${maxRetries} attempts:`, lastError?.message);
+    return null;
+}
 
 async function combineReadableStreams(streams: ReadableStream[]): Promise<ReadableStream> {
   if (streams.length === 0) {

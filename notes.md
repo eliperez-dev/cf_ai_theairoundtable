@@ -12,7 +12,7 @@ Then visit: http://localhost:8000
 **Run Worker locally**:
 ```powershell
 cd aipodcast-worker
-npm run dev
+wrangler dev --remote
 ```
 
 ## Deployment

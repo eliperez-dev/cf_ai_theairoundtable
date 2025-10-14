@@ -110,13 +110,21 @@ async function generatePodcast(topic) {
     try {
         // First, fetch the transcript
         showStatus('Generating script... this typically takes 30-60 seconds', 'loading');
+        
+        // Create an AbortController with timeout for transcript (2 minutes should be enough)
+        const transcriptController = new AbortController();
+        const transcriptTimeoutId = setTimeout(() => transcriptController.abort(), 120000); // 2 minutes
+        
         const transcriptResponse = await fetch(WORKER_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ topic, transcript: true })
+            body: JSON.stringify({ topic, transcript: true }),
+            signal: transcriptController.signal
         });
+        
+        clearTimeout(transcriptTimeoutId);
 
         if (!transcriptResponse.ok) {
             throw new Error(`Server error: ${transcriptResponse.status}`);
@@ -127,33 +135,50 @@ async function generatePodcast(topic) {
         displayTranscript(transcript);
 
         // Then, fetch the audio using the same script
-        showStatus('Generating audio... this may take another 30-60 seconds', 'loading');
-        const audioResponse = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ topic, script: transcriptData.transcript })
-        });
-
-        if (!audioResponse.ok) {
-            throw new Error(`Server error: ${audioResponse.status}`);
+        showStatus('Generating audio... this may take another 60-90 seconds', 'loading');
+        
+        // Create an AbortController with a longer timeout (3 minutes)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes
+        
+        try {
+            const audioResponse = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ topic, script: transcriptData.transcript }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!audioResponse.ok) {
+                throw new Error(`Server error: ${audioResponse.status}`);
+            }
+            
+            // Get the audio blob
+            const audioBlob = await audioResponse.blob();
+            
+            // Create a URL for the audio blob
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            // Set up audio player
+            audioElement.src = audioUrl;
+            downloadBtn.href = audioUrl;
+            downloadBtn.download = `podcast-${Date.now()}.mp3`;
+            
+            // Show success
+            showStatus('Podcast created successfully', 'success');
+            audioPlayer.classList.add('show');
+            
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Request timed out after 3 minutes. The podcast may be too long.');
+            }
+            throw fetchError;
         }
-
-        // Get the audio blob
-        const audioBlob = await audioResponse.blob();
-        
-        // Create a URL for the audio blob
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        // Set up audio player
-        audioElement.src = audioUrl;
-        downloadBtn.href = audioUrl;
-        downloadBtn.download = `podcast-${Date.now()}.mp3`;
-        
-        // Show success
-        showStatus('Podcast created successfully', 'success');
-        audioPlayer.classList.add('show');
         
     } catch (error) {
         console.error('Error:', error);
