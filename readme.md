@@ -15,7 +15,7 @@ The **AI Roundtable** takes a topic—from black holes to top news stories—and
 * **Alex:** A calm, knowledgeable host who explains concepts clearly.
 * **Jamie:** An upbeat, inquisitive co-host who asks relatable questions.
 
-Instead of robotic text-to-speech, you get a lively, back-and-forth dialogue that sounds like a real podcast.
+Back-and-forth dialogue that sounds like a real podcast!
 
 ---
 

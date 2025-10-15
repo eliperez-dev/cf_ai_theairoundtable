@@ -122,12 +122,12 @@ async function generatePodcast(topic, style = 'brief') {
     generateBtn.disabled = true;
     headlinesBtn.disabled = true;
     generateBtn.innerHTML = '<span class="spinner"></span> Creating podcast...';
-    showStatus('Generating conversation... this typically takes 30-60 seconds', 'loading');
+    showStatus('Alex is writing the script for the podcast... this typically takes 30-60 seconds', 'loading');
 
     try {
         // First, fetch the transcript
-        const estimatedTime = style === 'deep' ? '60-90 seconds' : '30-60 seconds';
-        showStatus(`Generating script... this typically takes ${estimatedTime}`, 'loading');
+        const estimatedTime = style === 'deep' ? '30-60 seconds' : '15-30 seconds';
+        showStatus(`Alex is writing the script...this typically takes ${estimatedTime}`, 'loading');
         
         // Create an AbortController with timeout for transcript (2 minutes should be enough)
         const transcriptController = new AbortController();
@@ -153,8 +153,8 @@ async function generatePodcast(topic, style = 'brief') {
         displayTranscript(transcript);
 
         // Then, fetch the audio using the same script
-        const audioEstimatedTime = style === 'deep' ? '90-120 seconds' : '60-90 seconds';
-        showStatus(`Script generated! Generating audio... this may take another ${audioEstimatedTime}`, 'loading');
+        const audioEstimatedTime = style === 'deep' ? '60-90 seconds' : '30-60 seconds';
+        showStatus(`Alex and Jamie are now recording the podcast...this may take another ${audioEstimatedTime}`, 'loading');
         
         // Create an AbortController with a longer timeout (3 minutes for brief, 5 minutes for deep)
         const controller = new AbortController();

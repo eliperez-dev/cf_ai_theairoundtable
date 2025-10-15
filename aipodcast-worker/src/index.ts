@@ -74,7 +74,7 @@ export default {
                     return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
                 });
             } else {
-                const linesPerHost = style === 'deep' ? 11 : 8;
+                const linesPerHost = style === 'deep' ? 10 : 8;
                 
                 const response = await env.AI.run(
                     // @ts-ignore
@@ -126,7 +126,15 @@ export default {
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
                 
-                const speaker = line.startsWith("[Alex]:") ? "arcas" : "luna";
+                const speaker = line.startsWith("[Alex]:") ? "arcas" : "helios"; 
+                // Angus is good, easy to listen to but robotic.
+                // Luna is best female voice but hard to hear.
+                // Orion sounds good but very similar to host.
+                // Orpheus sounds extremly robotic
+                // Athena is female is easy to hear but robotic and monotone.
+                // Zeus sounds good easy to hear but male like the host
+                // Perseus sounds good but hard to hear
+                // Helios sounds good. Easy to hear, funny.
                 
                 // Generate audio with retry logic
                 const audioStream = await generateAudioWithRetry(
@@ -253,7 +261,7 @@ async function combineReadableStreams(streams: ReadableStream[]): Promise<Readab
 function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep'): string {
     // Brief: 2-3 sentences per line, Deep: 6-10 sentences per line with extensive detail
     const sentenceGuidance = style === 'deep' 
-        ? 'Each line should be 3-5 sentences long , providing EXTENSIVE detailed explanations, multiple examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
+        ? 'Each line should be 3-4 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
         : 'Each line should be 2-3 sentences long, keeping the conversation concise and engaging.';
     
     const styleGuidance = style === 'deep'
@@ -276,12 +284,12 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
     4. Expand all acronyms. Example: U.S to United States.
     5. Alex's first line MUST include:
         - A greeting
-        - Introduction of both hosts by name
+        - Introduction of both hosts by name, dont explicitly describe their personalities.
         - Introduction to "The Roundtable"
-        - A short summary of the topic before diving into the subject / context the user submitted, and mention what was the user submitted. Refer to the user as "the user".
-        - Alex's initial line must be at least ${style === 'deep' ? '8' : '5'} sentences long
+        - A short summary of the topic before diving into the subject / context the user submitted, and mention what was the user submitted. Refer to the users submition as "the user".
+        - Alex's initial line must be at least ${style === 'deep' ? '6' : '4'} sentences long
     6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
-    7. Alternate between Alex and Jamie (bouncing back and forth)
+    7. Alternate between Alex and Jamie (bouncing back and forth). 
     8. Make sure to keep the conversation light and fun, with the occasional use of humor and jokes. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
     ${style === 'deep' ? '9. IMPORTANT FOR DEEP DIVE: Make each response substantial and detailed. Alex should elaborate on their points, provide context, share examples, and explore different angles. Avoid brief responses from alex - this is meant to be an in-depth discussion. Jamie should also share valuebale insites, but make sure Alex is taking most of the talking time.' : ''}
 
