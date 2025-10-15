@@ -15,3 +15,5 @@
 > Create a deployment script in powershell that deploys the page and worker to cloudflare. 
 
 > Add a button on the front end which creates the podcast off the recent headlines from the TheNewsAPI
+
+> Update the readme to include up to date information of the project. At this point, the project is complete. througly read all of the code to properly docment all of the features.

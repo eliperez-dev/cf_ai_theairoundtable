@@ -126,7 +126,7 @@ export default {
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
                 
-                const speaker = line.startsWith("[Alex]:") ? "arcas" : "orion";
+                const speaker = line.startsWith("[Alex]:") ? "arcas" : "luna";
                 
                 // Generate audio with retry logic
                 const audioStream = await generateAudioWithRetry(

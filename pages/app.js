@@ -282,7 +282,6 @@ downloadTranscriptBtn.addEventListener('click', () => {
     
     // Format transcript as text
     let transcriptText = 'AI Roundtable Podcast Transcript\n';
-    transcriptText += '='.repeat(50) + '\n\n';
     
     currentTranscript.forEach(line => {
         transcriptText += `${line.speaker}:\n${line.text}\n\n`;
