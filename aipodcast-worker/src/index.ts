@@ -261,7 +261,7 @@ async function combineReadableStreams(streams: ReadableStream[]): Promise<Readab
 function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep'): string {
     // Brief: 2-3 sentences per line, Deep: 6-10 sentences per line with extensive detail
     const sentenceGuidance = style === 'deep' 
-        ? 'Each line should be 3-4 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
+        ? 'Each line should be 2-4 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
         : 'Each line should be 2-3 sentences long, keeping the conversation concise and engaging.';
     
     const styleGuidance = style === 'deep'
