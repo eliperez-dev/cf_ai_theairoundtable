@@ -6,6 +6,8 @@ An AI-powered app that turns any topic into a dynamic, two-host podcast. This en
 
 **Built with:** `Cloudflare Workers` `Workers AI` `Cloudflare Pages` `TypeScript`
 
+![AI Roundtable UI](roundtable-gui.png)
+
 ---
 
 ## What It Does
@@ -16,6 +18,7 @@ The **AI Roundtable** takes a topic—from black holes to top news stories—and
 * **Jamie:** An upbeat, inquisitive co-host who asks relatable questions.
 
 Back-and-forth dialogue that sounds like a real podcast!
+
 
 ---
 
