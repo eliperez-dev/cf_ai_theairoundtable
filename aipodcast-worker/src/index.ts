@@ -74,7 +74,7 @@ export default {
                     return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
                 });
             } else {
-                const linesPerHost = style === 'deep' ? 10 : 8;
+                const linesPerHost = style === 'deep' ? 12 : 8;
                 
                 const response = await env.AI.run(
                     // @ts-ignore
@@ -262,7 +262,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
     // Brief: 2-3 sentences per line, Deep: 6-10 sentences per line with extensive detail
     const sentenceGuidance = style === 'deep' 
         ? 'Each line should be 2-4 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
-        : 'Each line should be 2-3 sentences long, keeping the conversation concise and engaging.';
+        : 'Each line should be 2-6 sentences long, keeping the conversation concise and engaging.';
     
     const styleGuidance = style === 'deep'
         ? 'This is a DEEP DIVE podcast - go into detail, explore nuances, provide multiple examples, discuss implications, and have a thorough, in-depth discussion.'
