@@ -276,6 +276,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
     User submitted context / topic: "${context}"
 
     STYLE: ${styleGuidance}
+    You may overide the style guidence if the user prompt explicitly requests one.
 
     REQUIREMENTS:
     1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2} lines total)
@@ -286,7 +287,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
         - A greeting
         - Introduction of both hosts by name, dont explicitly describe their personalities.
         - Introduction to "The Roundtable"
-        - A short summary of the topic before diving into the subject / context the user submitted, and mention what was the user submitted. Refer to the users submition as "the user".
+        - A short summary of the topic before diving into the subject / context the user submitted.
         - Alex's initial line must be at least ${style === 'deep' ? '5' : '4'} sentences long
     6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
     7. Alternate between Alex and Jamie (bouncing back and forth). 
