@@ -11,14 +11,21 @@ const downloadTranscriptBtn = document.getElementById('downloadTranscriptBtn');
 const transcriptSidebar = document.getElementById('transcriptSidebar');
 const transcriptContent = document.getElementById('transcriptContent');
 const styleOptions = document.querySelectorAll('.style-option');
+const alexVoiceDropdown = document.getElementById('alexVoice');
+const jamieVoiceDropdown = document.getElementById('jamieVoice');
 
 // Store current transcript data and selected style
 let currentTranscript = [];
 let selectedStyle = 'brief'; // default
+let selectedAlexVoice = 'arcas'; // default
+let selectedJamieVoice = 'hermes'; // default
 
 // Configure your worker URL here
 const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
 const HEADLINES_URL = `https://api.thenewsapi.com/v1/news/all?api_token=gFRazLJ01XoJ5JDwBvrh56aSI1sGiRz2qh6qFZng&language=en&limit=3`;
+
+// Initialize voice dropdown constraints on page load
+updateVoiceDropdownConstraints();
 
 /**
  * Set the topic input value
@@ -41,6 +48,36 @@ styleOptions.forEach(option => {
         selectedStyle = option.dataset.style;
     });
 });
+
+/**
+ * Handle voice dropdown selection
+ * Prevent the same voice from being selected for both hosts
+ */
+alexVoiceDropdown.addEventListener('change', () => {
+    selectedAlexVoice = alexVoiceDropdown.value;
+    updateVoiceDropdownConstraints();
+});
+
+jamieVoiceDropdown.addEventListener('change', () => {
+    selectedJamieVoice = jamieVoiceDropdown.value;
+    updateVoiceDropdownConstraints();
+});
+
+/**
+ * Update voice dropdown constraints
+ * Disable options that are already selected in the other dropdown
+ */
+function updateVoiceDropdownConstraints() {
+    // For each option in Alex's dropdown
+    Array.from(alexVoiceDropdown.options).forEach(option => {
+        option.disabled = option.value === selectedJamieVoice && option.value !== selectedAlexVoice;
+    });
+    
+    // For each option in Jamie's dropdown
+    Array.from(jamieVoiceDropdown.options).forEach(option => {
+        option.disabled = option.value === selectedAlexVoice && option.value !== selectedJamieVoice;
+    });
+}
 
 /**
  * Show status message
@@ -138,7 +175,7 @@ async function generatePodcast(topic, style = 'brief') {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ topic, transcript: true, style }),
+            body: JSON.stringify({ topic, transcript: true, style, alexVoice: selectedAlexVoice, jamieVoice: selectedJamieVoice }),
             signal: transcriptController.signal
         });
         
@@ -167,7 +204,7 @@ async function generatePodcast(topic, style = 'brief') {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ topic, script: transcriptData.transcript, style }),
+                body: JSON.stringify({ topic, script: transcriptData.transcript, style, alexVoice: selectedAlexVoice, jamieVoice: selectedJamieVoice }),
                 signal: controller.signal
             });
             

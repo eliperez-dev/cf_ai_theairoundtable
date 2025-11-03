@@ -44,9 +44,11 @@ export default {
             let returnTranscript = url.searchParams.get('transcript') === 'true';
             let providedScript: string | undefined;
             let style: 'brief' | 'deep' = 'brief'; // Default style
+            let alexVoice = "arcas"; // Default voice for Alex
+            let jamieVoice = "hermes"; // Default voice for Jamie
             
             if (request.method === 'POST') {
-                const body = await request.json() as { topic?: string; transcript?: boolean; script?: string; style?: 'brief' | 'deep' };
+                const body = await request.json() as { topic?: string; transcript?: boolean; script?: string; style?: 'brief' | 'deep'; alexVoice?: string; jamieVoice?: string };
                 if (body.topic && body.topic.trim()) {
                     topic = body.topic.trim();
                 }
@@ -58,6 +60,12 @@ export default {
                 }
                 if (body.style) {
                     style = body.style;
+                }
+                if (body.alexVoice) {
+                    alexVoice = body.alexVoice;
+                }
+                if (body.jamieVoice) {
+                    jamieVoice = body.jamieVoice;
                 }
             }
 
@@ -126,15 +134,7 @@ export default {
                 
                 console.log(`Generating audio for line ${i + 1}/${lines.length}`);
                 
-                const speaker = line.startsWith("[Alex]:") ? "arcas" : "helios"; 
-                // Angus is good, easy to listen to but robotic.
-                // Luna is best female voice but hard to hear.
-                // Orion sounds good but very similar to host.
-                // Orpheus sounds extremly robotic
-                // Athena is female is easy to hear but robotic and monotone.
-                // Zeus sounds good easy to hear but male like the host
-                // Perseus sounds good but hard to hear
-                // Helios sounds good. Easy to hear, funny.
+                const speaker = line.startsWith("[Alex]:") ? alexVoice : jamieVoice;
                 
                 // Generate audio with retry logic
                 const audioStream = await generateAudioWithRetry(
@@ -199,7 +199,7 @@ async function generateAudioWithRetry(
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
             // @ts-ignore
-            const audioStream = await ai.run("@cf/deepgram/aura-1", {
+            const audioStream = await ai.run("@cf/deepgram/aura-2-en", {
                 "text": text,
                 "speaker": speaker
             });
@@ -277,6 +277,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
 
     STYLE: ${styleGuidance}
     You may overide the style guidence if the user prompt explicitly requests one.
+    If the user also requests a specific overview of a text, please follow their intructions as best as you can, you may even overide the "podcast" style, but DO NOT CHANGE THE FORMAT OF THE OUTPUT.
 
     REQUIREMENTS:
     1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2} lines total)

@@ -229,6 +229,57 @@ textarea:focus {
     opacity: 0.8;
 }
 
+.voice-selector {
+    margin-bottom: 24px;
+}
+
+.voice-dropdowns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.voice-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.voice-group label {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+}
+
+.voice-dropdown {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.voice-dropdown:hover {
+    border-color: #3a3a3a;
+    background: #141414;
+}
+
+.voice-dropdown:focus {
+    outline: none;
+    border-color: #7da3cc;
+    background: #141414;
+    box-shadow: 0 0 0 2px rgba(125, 163, 204, 0.1);
+}
+
+.voice-dropdown option {
+    background: #1a1a1a;
+    color: #e0e0e0;
+}
+
 button {
     width: 100%;
     padding: 14px 24px;
