@@ -45,7 +45,7 @@ export default {
             let providedScript: string | undefined;
             let style: 'brief' | 'deep' = 'brief'; // Default style
             let alexVoice = "arcas"; // Default voice for Alex
-            let jamieVoice = "hermes"; // Default voice for Jamie
+            let jamieVoice = "harmonia"; // Default voice for Jamie
             
             if (request.method === 'POST') {
                 const body = await request.json() as { topic?: string; transcript?: boolean; script?: string; style?: 'brief' | 'deep'; alexVoice?: string; jamieVoice?: string };
@@ -270,8 +270,8 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
 
     return `
     Generate a simple podcast script with 2 hosts:
-    - Alex (knowledgeable and calm, presenting the topic, reacting to Jamie's comments)
-    - Jamie (upbeat, intrigued, funny, not so knowledgeable of the topic and should be relateable to the viewer, adding value to the discussion)
+    - Alex (knowledgeable and calm, initially introducing the topic)
+    - Jamie (upbeat, intrigued, funny, somewhat knowledgeable of the topic and should be relateable to the viewer, adding value to the discussion, and jamie may even sometimes take over leading the coversation, however alex is still the main speaker.)
 
     User submitted context / topic: "${context}"
 
@@ -282,7 +282,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
     REQUIREMENTS:
     1. Generate exactly ${linesPerHost} lines from each host (${linesPerHost*2} lines total)
     2. ${sentenceGuidance}
-    3. Start with Alex introducing the topic. Make sure both hosts are in conversation with each other and refer to each other. Alex should speak most of the podcast duration, since he is introducing the topic.
+    3. Start with Alex introducing the topic. Make sure both hosts are in conversation with each other and refer to each other. Alex should speak most of the podcast duration, since he is introducing the topic, and they may even talk about their personal experiences in their lives and their experiences with each other, since they see each other daily. 
     4. Expand all acronyms. Example: U.S to United States.
     5. Alex's first line MUST include:
         - A greeting

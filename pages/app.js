@@ -18,7 +18,7 @@ const jamieVoiceDropdown = document.getElementById('jamieVoice');
 let currentTranscript = [];
 let selectedStyle = 'brief'; // default
 let selectedAlexVoice = 'arcas'; // default
-let selectedJamieVoice = 'hermes'; // default
+let selectedJamieVoice = 'harmonia'; // default
 
 // Configure your worker URL here
 const WORKER_URL = 'https://aipodcast-worker.eliperez0024.workers.dev'; // Change this to your deployed worker URL
