@@ -82,7 +82,7 @@ export default {
                     return trimmed.length > 0 && (trimmed.startsWith("[Alex]:") || trimmed.startsWith("[Jamie]:"));
                 });
             } else {
-                const linesPerHost = style === 'deep' ? 12 : 8;
+                const linesPerHost = style === 'deep' ? 16 : 8;
                 
                 const response = await env.AI.run(
                     // @ts-ignore
@@ -289,7 +289,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
         - Introduction of both hosts by name, dont explicitly describe their personalities.
         - Introduction to "The Roundtable"
         - A short summary of the topic before diving into the subject / context the user submitted.
-        - Alex's initial line must be at least ${style === 'deep' ? '5' : '4'} sentences long
+        - Alex's initial line must be at least ${style === 'deep' ? '5' : '3'} sentences long
     6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
     7. Alternate between Alex and Jamie (bouncing back and forth). 
     8. Make sure to keep the conversation light and fun, with the occasional use of humor and jokes. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
