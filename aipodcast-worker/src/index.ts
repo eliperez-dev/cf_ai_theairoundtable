@@ -261,8 +261,8 @@ async function combineReadableStreams(streams: ReadableStream[]): Promise<Readab
 function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep'): string {
     // Brief: 2-3 sentences per line, Deep: 6-10 sentences per line with extensive detail
     const sentenceGuidance = style === 'deep' 
-        ? 'Each line should be 2-4 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
-        : 'Each line should be 2-6 sentences long, keeping the conversation concise and engaging.';
+        ? 'Each line should be 3-6 sentences long , providing detailed explanations, examples, and deep insights. Every response should be substantial and thorough, however Jamies lines may be shorter than alex\'s'
+        : 'Each line should be 2-4 sentences long, keeping the conversation concise and engaging.';
     
     const styleGuidance = style === 'deep'
         ? 'This is a DEEP DIVE podcast - go into detail, explore nuances, provide multiple examples, discuss implications, and have a thorough, in-depth discussion.'
@@ -270,9 +270,10 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
 
     return `
     Generate a simple podcast script with 2 hosts:
-    - Alex (knowledgeable and calm, initially introducing the topic)
+    - Alex (knowledgeable and calm, slightly sarcastic, dry, and humorous, who is the main speaker and introduces the topic and provides insightful commentary throughout the episode, always responding to Jamie as this is a two way conversation)
     - Jamie (upbeat, intrigued, funny, somewhat knowledgeable of the topic and should be relateable to the viewer, adding value to the discussion, and jamie may even sometimes take over leading the coversation, however alex is still the main speaker.)
 
+    The podcast should be intriguing, interesting to listen to, and informative. The podcast should be structured around a central theme or idea related to the topic, and should cover various aspects of the topic in depth. The podcast should aim to educate listeners about the topic, while also entertaining and engaging them through storytelling and relatable anecdotes.
     User submitted context / topic: "${context}"
 
     STYLE: ${styleGuidance}
@@ -293,7 +294,7 @@ function getPrompt(context: string, linesPerHost: number, style: 'brief' | 'deep
     6. Jamie's and Alex's final line should close out the podcast with a closing statement that includes their names and thanks the listener.
     7. Alternate between Alex and Jamie (bouncing back and forth). 
     8. Make sure to keep the conversation light and fun, with the occasional use of humor and jokes. However, make sure not to go overboard with jokes, and refrain from using them if the topic is serious / heavy.
-    ${style === 'deep' ? '9. IMPORTANT FOR DEEP DIVE: Make each response substantial and detailed. Alex should elaborate on their points, provide context, share examples, and explore different angles. Avoid brief responses from alex - this is meant to be an in-depth discussion. Jamie should also share valuebale insites, but make sure Alex is taking most of the talking time.' : ''}
+    ${style === 'deep' ? '9. IMPORTANT FOR DEEP DIVE: Make each response substantial and detailed. Alex should elaborate on their points, provide context, share examples, and explore different angles. Avoid brief responses from alex - this is meant to be an in-depth discussion.' : ''}
 
     FORMAT:
     - A line is simply what the speaker says during their turn. It can be arbitrarily long or short, but the turns should flow naturally like in real conversation. Each line can be multiple sentences or even a single word.
